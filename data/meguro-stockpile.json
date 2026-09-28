@@ -1,0 +1,166 @@
+{
+  "source": "目黒区地域防災計画（令和8年修正）資料編 第1章 第2節「3 備蓄倉庫一覧」「第3 備蓄 2 地域避難所防災倉庫備蓄品一覧（標準倉庫：面積14.4㎡）」",
+  "sourceUrl": "https://www.city.meguro.tokyo.jp/documents/738/shiryohen1.pdf",
+  "note": "座標は住所から国土地理院ジオコーディングAPIで取得した推定値。地区備蓄倉庫の品目別内訳は非公表のため、備蓄品は区が公表している標準倉庫の値を表示している。",
+  "warehouses": [
+    { "district": "北部", "name": "北部地区青葉台備蓄倉庫", "address": "青葉台1-27-14", "area": 22.14, "builtYear": "R3", "remarks": "新上六町会の防災資機材格納庫の隣" },
+    { "district": "北部", "name": "北部地区上目黒備蓄倉庫", "address": "上目黒2-48-2", "area": 98.25, "builtYear": "R7", "remarks": "上目黒どろんこ保育園内" },
+    { "district": "北部", "name": "北部地区備蓄倉庫", "address": "青葉台2-10-27", "area": 344.68, "builtYear": "S55", "remarks": "菅刈保育園" },
+    { "district": "北部", "name": "北部地区大坂橋下備蓄倉庫", "address": "青葉台3-6-19", "area": 26.56, "builtYear": "H27", "remarks": "" },
+    { "district": "北部", "name": "北部地区東山公園備蓄倉庫", "address": "東山2-18-8", "area": 202.5, "builtYear": "H22", "remarks": "" },
+    { "district": "北部", "name": "東山小学校内防災備蓄倉庫", "address": "東山2-24-25", "area": 53.74, "builtYear": "H30", "remarks": "東山小学校／地域避難所防災倉庫と兼用" },
+
+    { "district": "東部", "name": "東部地区田道備蓄倉庫", "address": "目黒1-25-26", "area": 173.68, "builtYear": "H4", "remarks": "田道ふれあい館" },
+    { "district": "東部", "name": "東部地区下目黒備蓄倉庫", "address": "目黒3-4-4", "area": 221.57, "builtYear": "H5", "remarks": "田道保育園" },
+    { "district": "東部", "name": "東部地区中目黒公園備蓄倉庫", "address": "中目黒2-3-14", "area": 210.24, "builtYear": "H14", "remarks": "" },
+    { "district": "東部", "name": "東部地区目黒不動防災ひろば備蓄倉庫", "address": "下目黒3-10-22", "area": 35.96, "builtYear": "H22", "remarks": "" },
+    { "district": "東部", "name": "東部地区こぶしえん備蓄倉庫", "address": "下目黒6-18-2", "area": 212.75, "builtYear": "R2", "remarks": "" },
+    { "district": "東部", "name": "東部地区三田フレンズ備蓄倉庫", "address": "三田1-11-26", "area": 84.46, "builtYear": "H25", "remarks": "三田フレンズ" },
+    { "district": "東部", "name": "東部地区三田2丁目備蓄倉庫", "address": "三田2-6-3", "area": 19.44, "builtYear": "H25", "remarks": "茶屋坂児童遊園" },
+
+    { "district": "中央", "name": "中央地区備蓄倉庫", "address": "中央町1-9-7", "area": 402.31, "builtYear": "H9", "remarks": "防災センター" },
+    { "district": "中央", "name": "中央地区目黒中央の家備蓄倉庫", "address": "中央町2-32-23", "area": 201.56, "builtYear": "R1", "remarks": "目黒中央の家内" },
+    { "district": "中央", "name": "中央地区碑文谷体育館備蓄倉庫", "address": "碑文谷6-12-43", "area": 236.89, "builtYear": "H13", "remarks": "地域避難所防災倉庫と兼用" },
+    { "district": "中央", "name": "中央地区五本木二丁目備蓄倉庫", "address": "五本木2-20-23", "area": 33.3, "builtYear": "H22", "remarks": "" },
+
+    { "district": "南部", "name": "南部地区備蓄倉庫", "address": "目黒本町2-1-20", "area": 316.89, "builtYear": "S56", "remarks": "南部地区センター" },
+
+    { "district": "西部", "name": "西部地区備蓄倉庫", "address": "八雲3-13-21", "area": 341.35, "builtYear": "S59", "remarks": "宮前小学校／地域避難所防災倉庫と兼用" },
+    { "district": "西部", "name": "西部地区応急対策資機材等倉庫", "address": "八雲1-1-8", "area": 350.02, "builtYear": "H12", "remarks": "めぐろ区民キャンパス／地域避難所防災倉庫と兼用" }
+  ],
+
+  "inventoryBaseline": {
+    "note": "在庫管理用の初期値。標準倉庫（14.4㎡）1棟あたりの箱数に換算し、各倉庫の面積比で按分する。倉庫別の実在庫は非公表のため全て推計値。",
+    "basis": "標準倉庫の公表値をそのまま換算したもの（origin=standard）と、区全体合計を倉庫数59（地区倉庫20＋地域避難所倉庫39）で割ったもの（origin=total）がある。",
+    "items": [
+      { "item": "water", "quantity": 485, "origin": "total", "note": "区全体686,160本÷24本÷59倉庫" },
+      { "item": "food", "quantity": 38, "origin": "total", "note": "α化米113,050食÷50食÷59倉庫" },
+      { "item": "biscuit", "quantity": 53, "origin": "standard", "note": "標準倉庫ビスケット1,280食÷24食" },
+      { "item": "babyFormula", "quantity": 1, "origin": "standard", "note": "標準倉庫1箱" },
+      { "item": "babyFood", "quantity": 0, "origin": "standard", "note": "標準倉庫・区全体ともに記載なし" },
+      { "item": "blanket", "quantity": 55, "origin": "standard", "note": "標準倉庫毛布550枚÷10枚" },
+      { "item": "towel", "quantity": 18, "origin": "total", "note": "救助用タオル53,100枚÷50枚÷59倉庫" },
+      { "item": "blueSheet", "quantity": 2, "origin": "standard", "note": "標準倉庫20枚÷10枚" },
+      { "item": "cardboardBed", "quantity": 6, "origin": "total", "note": "区全体380台÷59倉庫" },
+      { "item": "partition", "quantity": 2, "origin": "standard", "note": "標準倉庫パーテーション2台" },
+      { "item": "portableToiletBag", "quantity": 11, "origin": "total", "note": "携帯トイレ66,200個÷100回分÷59倉庫" },
+      { "item": "portableToilet", "quantity": 8, "origin": "standard", "note": "標準倉庫簡易便座8式" },
+      { "item": "diaperBaby", "quantity": 8, "origin": "total", "note": "区全体47,064枚÷100枚÷59倉庫" },
+      { "item": "diaperAdult", "quantity": 4, "origin": "total", "note": "区全体17,586枚÷80枚÷59倉庫" },
+      { "item": "sanitaryGoods", "quantity": 172, "origin": "total", "note": "区全体203,136個÷20÷59倉庫" },
+      { "item": "mask", "quantity": 80, "origin": "standard", "note": "標準倉庫サージカルマスク4,000枚÷50枚" },
+      { "item": "disinfectant", "quantity": 1, "origin": "total", "note": "手指消毒剤612個÷12本÷59倉庫" },
+      { "item": "generator", "quantity": 6, "origin": "standard", "note": "標準倉庫発電機900W 6台" },
+      { "item": "floodlight", "quantity": 20, "origin": "standard", "note": "標準倉庫投光機20式" },
+      { "item": "gasStove", "quantity": 0, "origin": "standard", "note": "標準倉庫は大型炊飯器のみでカセットコンロの記載なし" }
+    ]
+  },
+
+  "standardStock": {
+    "note": "標準倉庫（面積14.4㎡）1棟あたりの公表値",
+    "categories": [
+      {
+        "category": "飲料・食料",
+        "items": [
+          { "name": "飲料水（500ml）", "quantity": 485, "unit": "箱", "boxSize": "1箱24本入り", "estimated": true, "estimateNote": "区全体686,160本を倉庫数で按分した推計" },
+          { "name": "飲料水（粉ミルク用）", "quantity": 108, "unit": "ℓ" },
+          { "name": "ビスケット", "quantity": 1280, "unit": "食" },
+          { "name": "ソフトビスケット", "quantity": 900, "unit": "食" },
+          { "name": "ライスクッキー（アレルギー対応）", "quantity": 48, "unit": "食" },
+          { "name": "白粥（要配慮者用）", "quantity": 50, "unit": "食" },
+          { "name": "粉ミルク（一般用16缶、アレルギー用1缶）", "quantity": 1, "unit": "箱" },
+          { "name": "ほ乳瓶", "quantity": 40, "unit": "本" },
+          { "name": "アルミ食器", "quantity": 1200, "unit": "個" },
+          { "name": "大型炊飯器（バーナー含）", "quantity": 1, "unit": "式" }
+        ]
+      },
+      {
+        "category": "寝具・生活用品",
+        "items": [
+          { "name": "毛布", "quantity": 550, "unit": "枚" },
+          { "name": "サバイバルブランケット", "quantity": 1000, "unit": "枚" },
+          { "name": "パーテーション（テント）", "quantity": 2, "unit": "台" },
+          { "name": "屋内テント（内不織布テント3基）", "quantity": 23, "unit": "基" },
+          { "name": "ブルーシート", "quantity": 20, "unit": "枚" },
+          { "name": "ポリシート（50m）", "quantity": 2, "unit": "本" },
+          { "name": "ペットケージ（大）", "quantity": 2, "unit": "個" },
+          { "name": "ペットケージ（小）", "quantity": 1, "unit": "個" }
+        ]
+      },
+      {
+        "category": "トイレ・衛生",
+        "items": [
+          { "name": "下水道直結型トイレ（洋式）", "quantity": 3, "unit": "台" },
+          { "name": "下水道直結型トイレ（和式）", "quantity": 1, "unit": "台" },
+          { "name": "下水道直結型トイレ（車椅子用）", "quantity": 1, "unit": "台" },
+          { "name": "災害用組立トイレ（貯留タイプ）", "quantity": 1, "unit": "台" },
+          { "name": "災害用組立トイレ（男性小用）", "quantity": 2, "unit": "台" },
+          { "name": "簡易便座（収納袋100袋含む）", "quantity": 8, "unit": "式" },
+          { "name": "幼児用便座", "quantity": 2, "unit": "個" },
+          { "name": "サージカルマスク", "quantity": 4000, "unit": "枚" },
+          { "name": "衛生用手袋", "quantity": 500, "unit": "枚" },
+          { "name": "手指消毒剤", "quantity": 12, "unit": "L" },
+          { "name": "ウェットティッシュ", "quantity": 200, "unit": "袋" },
+          { "name": "ペーパータオル", "quantity": 2000, "unit": "枚" },
+          { "name": "消臭剤", "quantity": 5, "unit": "本" },
+          { "name": "次亜塩素酸ナトリウム（600ml）", "quantity": 1, "unit": "本" },
+          { "name": "防護服（シューズカバー含む）", "quantity": 30, "unit": "枚" },
+          { "name": "フェイスガード", "quantity": 40, "unit": "枚" }
+        ]
+      },
+      {
+        "category": "電源・照明",
+        "items": [
+          { "name": "発電機（3500W）", "quantity": 1, "unit": "台", "remarks": "一部避難所のみ（都立高校を除く）" },
+          { "name": "発電機（1600W）", "quantity": 2, "unit": "台" },
+          { "name": "発電機（900W）", "quantity": 6, "unit": "台" },
+          { "name": "投光機（三脚含）", "quantity": 20, "unit": "式" },
+          { "name": "コードリール", "quantity": 11, "unit": "巻" },
+          { "name": "電源延長コード（投光機用）", "quantity": 3, "unit": "本" },
+          { "name": "ガソリン缶詰（1ℓ）", "quantity": 30, "unit": "缶" },
+          { "name": "灯油缶詰（1ℓ）", "quantity": 30, "unit": "缶" },
+          { "name": "携行缶", "quantity": 2, "unit": "缶" },
+          { "name": "蓄電池（太陽光パネル付）", "quantity": 1, "unit": "台" },
+          { "name": "懐中電灯", "quantity": 14, "unit": "個" },
+          { "name": "ランタン（トイレ用）", "quantity": 5, "unit": "個" },
+          { "name": "単二・単三電池", "quantity": 80, "unit": "本" },
+          { "name": "USB充電器（10口）", "quantity": 2, "unit": "個" },
+          { "name": "充電ケーブル", "quantity": 10, "unit": "本" }
+        ]
+      },
+      {
+        "category": "給水・救助資機材",
+        "items": [
+          { "name": "D級ポンプ", "quantity": 1, "unit": "台" },
+          { "name": "移動式蛇口（給水架台含）", "quantity": 2, "unit": "式" },
+          { "name": "応急給水用資機材セット（黄：応急給水栓用）", "quantity": 1, "unit": "式" },
+          { "name": "応急給水用資機材セット（青：消火栓用）", "quantity": 1, "unit": "式" },
+          { "name": "救助用資機材", "quantity": 1, "unit": "式" },
+          { "name": "担架", "quantity": 2, "unit": "台" },
+          { "name": "三角巾", "quantity": 100, "unit": "枚" },
+          { "name": "救急箱", "quantity": 1, "unit": "箱" },
+          { "name": "おんぶ帯・抱っこひも（大人・子供用）", "quantity": 11, "unit": "個" },
+          { "name": "非接触型体温計", "quantity": 3, "unit": "本" },
+          { "name": "トイレ工具セット（マンホール用フック等）", "quantity": 1, "unit": "式" },
+          { "name": "応急危険度判定用資器材", "quantity": 1, "unit": "式" },
+          { "name": "バケツ", "quantity": 1, "unit": "個" }
+        ]
+      },
+      {
+        "category": "運営・通信",
+        "items": [
+          { "name": "特設公衆電話セット", "quantity": 1, "unit": "式" },
+          { "name": "モバイルルーター", "quantity": 1, "unit": "台" },
+          { "name": "トランジスタメガホン", "quantity": 4, "unit": "台" },
+          { "name": "自動翻訳機", "quantity": 1, "unit": "台" },
+          { "name": "事務用品箱（避難者名簿等）", "quantity": 1, "unit": "式" },
+          { "name": "避難所旗（地域避難所・救護所）", "quantity": 6, "unit": "式" },
+          { "name": "ゼッケン（4色）", "quantity": 40, "unit": "枚" },
+          { "name": "受付テント", "quantity": 2, "unit": "基", "remarks": "区民キャンパスや公園を含む避難所は4基" },
+          { "name": "安否確認用資機材", "quantity": 1, "unit": "式" },
+          { "name": "防犯ブザー", "quantity": 10, "unit": "個" }
+        ]
+      }
+    ]
+  }
+}

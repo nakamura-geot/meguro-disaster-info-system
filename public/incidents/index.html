@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>災害一覧</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>目黒区 災害情報共有システム － 災害一覧</h1>
+    <a class="button" href="/">現在の災害の画面に戻る</a>
+  </header>
+
+  <main>
+    <p class="lead">
+      災害ごとに画面（タブ）が分かれています。行をクリックすると、その災害専用の画面が新しいタブで開きます。
+      進行中の災害は入力・更新ができ、終了した災害は被害報告・物資要求・全体共有・情報発信のみ追記できます
+      （避難所・ライフラインの状態は常に現在のものが表示されます）。
+    </p>
+    <ol id="incident-list">読み込み中...</ol>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "source": "東京都「都立の一時滞在施設」（東京都総務局, CC BY 4.0, 令和5年1月1日時点）から目黒区分を抽出",
+  "sourceUrl": "https://www.opendata.metro.tokyo.lg.jp/soumu/130001_temporary_public_evacuation.xlsx",
+  "note": "座標は住所から国土地理院ジオコーディングAPIで取得した推定値。元データに緯度経度・収容人数の項目はない。民間の一時滞在施設は事業者の意向により一部非公表で、発災時に区が公表するため、この4件は目黒区内の一時滞在施設の一部にすぎない。",
+  "facilities": [
+    { "name": "東京都写真美術館", "address": "三田1-13-3", "operator": "東京都" },
+    { "name": "駒場高等学校", "address": "大橋2-18-1", "operator": "東京都" },
+    { "name": "桜修館中等教育学校", "address": "八雲1-1-2", "operator": "東京都" },
+    { "name": "国際高等学校", "address": "駒場2-19-59", "operator": "東京都" }
+  ]
+}

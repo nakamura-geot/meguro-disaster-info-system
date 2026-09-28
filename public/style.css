@@ -1,0 +1,1302 @@
+:root {
+  --bg: #f4f5f7;
+  --panel: #ffffff;
+  --border: #d9dce1;
+  --text: #1c2025;
+  --muted: #6b7280;
+  --accent: #1d4ed8;
+  --reported: #dc2626;
+  --responding: #f59e0b;
+  --resolved: #16a34a;
+  --shelter-open: #2563eb;
+  --shelter-full: #7c3aed;
+  --shelter-closed: #9ca3af;
+
+  color-scheme: light;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  color: var(--text);
+  background: var(--bg);
+}
+
+body {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  grid-template-rows: 52px minmax(0, 1fr);
+  grid-template-areas:
+    "header header header"
+    "left map right";
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 物資管理中は物資の画面だけを全幅で出す */
+body.mode-logistics {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "header"
+    "map";
+}
+
+body.mode-logistics #sidebar-left,
+body.mode-logistics #sidebar-right,
+body.mode-logistics #map-wrap {
+  display: none;
+}
+
+/* 3カラムを畳んだら、地図を上に固定してパネルを縦に積み、ページ全体でスクロールする。
+   パネルごとに独立スクロールさせると境目で内容が途切れて読みにくい。 */
+@media (max-width: 1100px) {
+  body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 52px 60vh auto auto;
+    grid-template-areas:
+      "header"
+      "map"
+      "left"
+      "right";
+    /* 100vh 固定のままだと auto 行が押し潰されるので、内容に応じて伸ばす */
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  /* 基底の aside { overflow-y: auto } より後から効かせるため子セレクタで書く */
+  body > aside { overflow-y: visible; }
+
+  #sidebar-left, #sidebar-right { border: none; }
+
+  .card.fill { min-height: 320px; }
+}
+
+/* ヘッダーの要素が横に収まらなくなったら2段に折り返す */
+@media (max-width: 900px) {
+  body { grid-template-rows: auto 60vh auto auto; }
+  body.mode-logistics { grid-template-rows: auto auto; }
+
+  #header {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 6px 12px;
+    gap: 8px;
+    row-gap: 6px;
+  }
+
+  #header h1 {
+    font-size: 13px;
+    flex: 1;
+  }
+
+  #mode-switch { margin-left: 0; }
+
+  #clock { display: none; }
+}
+
+@media (max-width: 700px) {
+  body { grid-template-rows: auto 55vh auto auto; }
+}
+
+/* ヘッダー */
+
+#header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 16px;
+  background: #11213a;
+  color: #fff;
+}
+
+#header h1 {
+  font-size: 15px;
+  margin: 0;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#mode-switch {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+#mode-switch button {
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+#mode-switch button.active {
+  background: #fff;
+  color: #11213a;
+  font-weight: 600;
+}
+
+#elapsed {
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background: transparent;
+  color: #c7d2e4;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#elapsed.needs-start {
+  background: #b45309;
+  border-color: #b45309;
+  color: #fff;
+  font-weight: 600;
+}
+
+#elapsed.active {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #fff;
+  font-weight: 600;
+}
+
+#incidents-link {
+  font-size: 12px;
+  color: #c7d2e4;
+  white-space: nowrap;
+  text-decoration: underline;
+}
+
+#incidents-link:hover { color: #fff; }
+
+#clock {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: #c7d2e4;
+  min-width: 150px;
+  text-align: right;
+}
+
+/* 過去の災害を見ているときの注意バナー。#map (position:relative) の上に重ねる帯。
+   グリッドの行取りには影響させない（absolute で外す）。 */
+#incident-banner {
+  position: absolute;
+  z-index: 25;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #fff7ed;
+  border-bottom: 2px solid #fdba74;
+  color: #9a3412;
+  font-size: 13px;
+  padding: 8px 16px;
+  text-align: center;
+}
+
+#incident-banner a {
+  color: #9a3412;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
+/* サイドバー */
+
+aside {
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#sidebar-left { grid-area: left; border-right: 1px solid var(--border); }
+#sidebar-right { grid-area: right; border-left: 1px solid var(--border); }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.card.fill {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.card h2 {
+  font-size: 12px;
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* 集計 */
+
+.summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.summary .metric {
+  background: #f8fafc;
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin: 0;
+  border: 1px solid transparent;
+  display: block;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  width: 100%;
+}
+
+.summary button.metric { cursor: pointer; }
+
+.summary button.metric:hover {
+  border-color: var(--accent);
+  background: #eff3ff;
+}
+
+.summary .metric .label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.summary button.metric .label::after {
+  content: ' ›';
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.summary .metric .value {
+  display: block;
+  margin-top: 2px;
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary .metric.wide { grid-column: 1 / -1; }
+
+/* ライフライン */
+
+#lifeline-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+#lifeline-buttons .utility {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+}
+
+#lifeline-buttons .utility:hover { border-color: var(--accent); }
+
+#lifeline-buttons .utility.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+#lifeline-legend {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.legend-title {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 2px 0;
+}
+
+.legend-row .swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.legend-count {
+  margin-left: auto;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.legend-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--accent);
+}
+
+/* レイヤー */
+
+#layers label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 3px 0;
+  cursor: pointer;
+}
+
+/* 地図のピンと同じ「避」「害」などの文字を凡例にも出す */
+#layers .dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+#layers .count {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 帳票 */
+
+#category-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+#category-table td {
+  padding: 4px 0;
+  border-bottom: 1px solid #eef0f3;
+}
+
+#category-table td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.button {
+  display: block;
+  text-align: center;
+  font-size: 13px;
+  padding: 7px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--accent);
+  background: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.button:hover { background: #eff3ff; }
+
+.button + .button, .card .button + .button { margin-top: 6px; }
+
+/* 電気・水道・トイレは横に3つ並べる */
+/* 電気・水道・トイレ・インターネットの4項目。「インターネット」の文字数が長いので2x2で組む。 */
+#dialog-form .utility-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.button.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.button.primary:hover { background: #1a44bd; }
+
+/* 地図 */
+
+/* Geolonia が #map の中身を丸ごと書き換えるため、バナーは兄弟要素としてラッパー側に重ねる */
+#map-wrap {
+  grid-area: map;
+  position: relative;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+}
+
+body.mode-field #map { cursor: crosshair; }
+
+/* 入力用の画面では、本部向けの帳票・情報発信は出さない。
+   ライフラインは入力させないが、参照はできるよう残す（閲覧専用の見た目にする）。 */
+body.mode-shelter #card-report,
+body.mode-shelter #card-broadcast,
+body.mode-field #card-report,
+body.mode-field #card-broadcast {
+  display: none;
+}
+
+/* 既定では非表示。参集指定職員・現場職員のときだけ「閲覧のみ」の案内を出す */
+.lifeline-readonly-note {
+  display: none;
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+body.mode-shelter .lifeline-readonly-note,
+body.mode-field .lifeline-readonly-note {
+  display: block;
+}
+
+#mode-hint {
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 64px;
+  background: #11213a;
+  color: #fff;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* 物資管理 */
+
+#logistics {
+  grid-area: map;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+#logistics[hidden] { display: none; }
+
+.logistics-col {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.logistics-col h2 {
+  font-size: 12px;
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.logistics-col h2:not(:first-child) {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.logistics-hint {
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.logistics-empty {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.logistics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.logistics-table th {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: left;
+  font-weight: 600;
+  padding: 0 6px 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.logistics-table td {
+  padding: 6px 6px 6px 0;
+  border-bottom: 1px solid #eef0f3;
+  vertical-align: middle;
+}
+
+.logistics-table tr[data-request] { cursor: pointer; }
+.logistics-table tr[data-request]:hover { background: #f4f7ff; }
+
+.logistics-table tr.selected {
+  background: #eff3ff;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.logistics-table tr.out-of-stock td { color: var(--muted); }
+
+.req-item { font-weight: 600; }
+
+.req-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.req-qty {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.alloc-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.alloc-action input[type="number"] {
+  font: inherit;
+  font-size: 13px;
+  width: 60px;
+  padding: 4px 6px;
+  text-align: right;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.alloc-action .button {
+  padding: 4px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.alloc-target {
+  background: #f8fafc;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.alloc-target .alloc-item {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.alloc-sheet select {
+  font: inherit;
+  font-size: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--text);
+}
+
+.alloc-sheet .alloc-action { justify-content: stretch; }
+
+.alloc-done {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.alloc-none {
+  font-size: 12px;
+  color: var(--reported);
+}
+
+.alloc-target dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  font-size: 12px;
+}
+
+.alloc-target dt { color: var(--muted); }
+.alloc-target dd { margin: 0; }
+
+#inventory-select {
+  font: inherit;
+  font-size: 13px;
+  width: 100%;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.logistics-table.total th:not(:first-child) { text-align: right; }
+
+.logistics-table.total td:first-child { width: 55%; }
+
+.logistics-table.inventory input[type="number"] {
+  font: inherit;
+  font-size: 13px;
+  width: 72px;
+  padding: 3px 6px;
+  text-align: right;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-right: 4px;
+}
+
+@media (max-width: 1100px) {
+  #logistics {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: visible;
+  }
+
+  .logistics-col { overflow-y: visible; }
+
+  /* 物資管理中は縦に伸ばしてページ全体でスクロールする */
+  body.mode-logistics {
+    grid-template-rows: 52px auto;
+  }
+}
+
+/* 時系列 */
+
+#notice-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+#notice-form .notice-row {
+  display: flex;
+  gap: 6px;
+}
+
+#notice-form select,
+#notice-form input {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--text);
+  min-width: 0;
+}
+
+#notice-form select { flex: 1; }
+
+#notice-form input { width: 100%; }
+
+/* 横並びの行に入る入力は、ボタンと並べても溢れないようにする */
+#notice-form .notice-row input {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+
+#notice-form .button {
+  flex: none;
+  padding: 6px 14px;
+}
+
+#timeline-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+#timeline-filter .chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  background: #fff;
+}
+
+#timeline-filter .chip:has(input:checked) {
+  border-color: var(--accent);
+  background: #eff3ff;
+  color: var(--accent);
+}
+
+#timeline-filter .chip input {
+  margin: 0;
+  width: 11px;
+  height: 11px;
+}
+
+#timeline-filter .chip-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+#timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+#timeline li {
+  border-left: 3px solid var(--border);
+  padding: 0 0 12px 10px;
+  margin-left: 4px;
+  font-size: 13px;
+}
+
+#timeline li.damage { border-left-color: var(--reported); }
+#timeline li.shelter { border-left-color: var(--shelter-open); }
+#timeline li.supply { border-left-color: #7c3aed; }
+
+/* 全体共有事項は本部が書き込んだものなので強調する */
+#timeline li.notice {
+  border-left-color: #11213a;
+  border-left-width: 4px;
+  background: #f4f7ff;
+  border-radius: 0 4px 4px 0;
+  padding: 6px 8px 8px 10px;
+  margin-bottom: 8px;
+}
+
+#timeline li.notice .title { color: #11213a; }
+
+#timeline li.notice .body {
+  color: var(--text);
+  font-size: 13px;
+}
+
+#timeline .by {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+#timeline .link {
+  margin-left: auto;
+  font: inherit;
+  font-size: 11px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+#timeline .time {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+#timeline .title { font-weight: 600; }
+
+#timeline .body {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#timeline .empty, .summary .empty {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ダイアログ */
+
+#dialog {
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  min-width: 340px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+#dialog::backdrop { background: rgba(17, 33, 58, 0.45); }
+
+#dialog-form {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#dialog-form h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+#dialog-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+#dialog-form select,
+#dialog-form input,
+#dialog-form textarea {
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+}
+
+#dialog-form textarea { resize: vertical; min-height: 60px; }
+
+#dialog-form .actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+#dialog-form .actions .button { flex: 1; }
+
+#dialog-form dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  font-size: 13px;
+}
+
+#dialog-form dt { color: var(--muted); }
+#dialog-form dd { margin: 0; }
+
+/* 物資の品目選択 */
+
+#dialog { max-height: 86vh; }
+
+#dialog-form { overflow-y: auto; }
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.field-label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.request-summary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+}
+
+.request-summary strong { float: right; }
+
+.request-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* 情報発信 */
+#broadcast-log {
+  margin-top: 10px;
+}
+
+.broadcast-entry {
+  border-top: 1px solid #eef0f3;
+  padding: 6px 0 0;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.broadcast-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.broadcast-meta .link { margin-left: auto; }
+
+.broadcast-entry.scheduled {
+  background: #fff7ed;
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.badge-schedule {
+  background: #ea580c;
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+.link {
+  font: inherit;
+  font-size: 11px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+#timeline li.broadcast { border-left-color: #0284c7; }
+
+#dialog-form .channel-row {
+  grid-template-columns: auto 1fr;
+  padding: 5px 0;
+}
+
+/* 被害報告の追記履歴 */
+.update-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 24vh;
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+.update-log li {
+  border-left: 3px solid var(--border);
+  padding: 0 0 8px 8px;
+  margin-left: 2px;
+}
+
+.update-log .update-meta {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 備蓄品目 */
+
+.stock {
+  max-height: 44vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 10px 8px;
+}
+
+.stock-group h4 {
+  margin: 10px 0 2px;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.stock-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.stock-table td {
+  padding: 3px 0;
+  border-bottom: 1px solid #f1f3f6;
+  vertical-align: top;
+}
+
+.stock-table .stock-qty {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  padding-left: 12px;
+}
+
+.stock-table .stock-note td {
+  border-bottom: none;
+  padding: 0 0 3px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.estimate-mark {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 5px;
+  font-size: 10px;
+  border-radius: 8px;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.source-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.picker {
+  max-height: 46vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 10px 8px;
+}
+
+.picker-group h4 {
+  margin: 10px 0 4px;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.picker-row {
+  display: grid;
+  grid-template-columns: auto 1fr 76px auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+/* #dialog-form label / input の一般規則より優先させるため ID から書く */
+#dialog-form .picker-row label {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+#dialog-form .picker-row input[type="number"] {
+  font-size: 13px;
+  padding: 4px 6px;
+  text-align: right;
+}
+
+.picker-row .unit {
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 2.5em;
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 一覧ダイアログ */
+
+#list-dialog {
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  width: min(520px, 92vw);
+  max-height: 80vh;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+#list-dialog::backdrop { background: rgba(17, 33, 58, 0.45); }
+
+#list-body {
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.list-header h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.list-header .close {
+  margin-left: auto;
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.list li { border-bottom: 1px solid #eef0f3; }
+
+.list li.empty {
+  padding: 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.list li > button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  width: 100%;
+  padding: 10px 18px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.list li > button:hover { background: #f4f7ff; }
+
+.list .primary {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.list .meta {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.list .secondary {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.list .bar {
+  display: block;
+  height: 6px;
+  margin-top: 5px;
+  background: #eef0f3;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.list .bar > span {
+  display: block;
+  height: 100%;
+}
+
+/* list ダイアログとマップポップアップの両方から使う共通見た目 */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  color: #fff;
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+
+.list-footer {
+  padding: 8px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* 地図ポップアップ */
+
+.maplibregl-popup { z-index: 20; max-width: 280px; }
+
+.map-popup h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.map-popup dl {
+  margin: 0;
+  font-size: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 8px;
+}
+
+.map-popup dt { color: var(--muted); }
+.map-popup dd { margin: 0; }
+
+.map-popup .hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--accent);
+}

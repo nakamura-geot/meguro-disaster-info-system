@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>目黒区 避難所開設状況</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>目黒区 避難所開設状況</h1>
+  </header>
+
+  <p id="prototype-notice">
+    この画面は Geolonia が作成した試作品です。実際の避難情報は必ず目黒区の公式発表を確認してください。
+  </p>
+
+  <main>
+    <section id="status-banner" aria-live="polite">読み込み中...</section>
+
+    <p id="updated"></p>
+
+    <div id="map" hidden></div>
+
+    <section id="shelter-section">
+      <div id="filter" role="group" aria-label="表示する避難所">
+        <button type="button" data-filter="open" class="active">開設中のみ</button>
+        <button type="button" data-filter="all">すべての避難所</button>
+      </div>
+      <ul id="shelter-list"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>避難所の位置・名称は目黒区オープンデータ「地域避難所」（CC BY 4.0）を利用しています。</p>
+    <p>開設状況は災害対策本部が入力した内容を30秒ごとに自動更新して表示しています。</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

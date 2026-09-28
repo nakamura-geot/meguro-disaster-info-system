@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "geonicdb": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://geonicdb.geolonia.com/mcp",
+        "--header",
+        "X-Api-Key:${GEONIC_API_KEY}",
+        "--header",
+        "NGSILD-Tenant:${GEONIC_SERVICE}",
+        "--transport",
+        "http-only",
+        "--allow-http"
+      ],
+      "env": {
+        "GEONIC_API_KEY": "gdb_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "GEONIC_SERVICE": "gtsales_stg"
+      }
+    }
+  }
+}
