@@ -111,6 +111,7 @@ async function main() {
 
   state.supplyItems = supplyItems.items;
   state.operatorRoles = config.operatorRoles;
+  document.getElementById('demo-badge').hidden = !config.demoMode;
   setupWhiteboard(noticeCategories.categories);
   setupBroadcast(broadcastChannels.channels);
   await loadGeoloniaScript(config.geoloniaApiKey);

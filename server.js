@@ -2,6 +2,7 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const { SUPPLY_ITEMS, SUPPLY_ITEMS_BY_CODE } = require('./supply-items');
+const { createDemoStore } = require('./demo-store');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,6 +10,10 @@ const PORT = process.env.PORT || 3000;
 const GEONIC_BASE_URL = process.env.GEONIC_BASE_URL || 'https://geonicdb.geolonia.com/ngsi-ld/v1';
 const GEONIC_API_KEY = process.env.GEONIC_API_KEY;
 const GEONIC_SERVICE = process.env.GEONIC_SERVICE;
+
+// GeonicDB の接続情報が無ければ、メモリ上のサンプルデータで動く「デモモード」にする
+const DEMO_MODE = !GEONIC_API_KEY || !GEONIC_SERVICE;
+const demoStore = DEMO_MODE ? createDemoStore() : null;
 
 // localhost や GitHub Pages などではデモキー "YOUR-API-KEY" がそのまま使える。
 // 独自ドメインで公開する場合のみ app.geolonia.com でキーを発行して .env に設定する。
@@ -33,8 +38,10 @@ const SHELTER_STATUSES = ['available', 'crowded', 'full', 'closed'];
 const OPEN_SHELTER_STATUSES = ['available', 'crowded', 'full'];
 const isOpenShelterStatus = (status) => OPEN_SHELTER_STATUSES.includes(status);
 
-if (!GEONIC_API_KEY || !GEONIC_SERVICE) {
-  console.warn('[warn] GEONIC_API_KEY / GEONIC_SERVICE が .env に設定されていません。');
+if (DEMO_MODE) {
+  console.warn(
+    '[info] GEONIC_API_KEY / GEONIC_SERVICE が .env に設定されていないため、デモモード（メモリ上のサンプルデータ）で起動します。',
+  );
 }
 
 app.use(express.json({ limit: '1mb' }));
@@ -51,6 +58,8 @@ function geonicHeaders(contentType) {
 }
 
 async function geonic(pathname, { method = 'GET', body, contentType, query } = {}) {
+  if (DEMO_MODE) return demoGeonic(pathname, { method, body, query });
+
   const url = new URL(`${GEONIC_BASE_URL}${pathname}`);
   for (const [key, value] of Object.entries(query || {})) {
     if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
@@ -73,6 +82,31 @@ async function geonic(pathname, { method = 'GET', body, contentType, query } = {
   // 201 Created / 204 No Content は本文が空で返るため、本文の有無で判定する
   const text = await res.text();
   return text ? JSON.parse(text) : null;
+}
+
+// デモモード（GeonicDB キー未設定）のとき、geonic() の呼び出し先をメモリ上のストアに差し替える
+function demoGeonic(pathname, { method, body, query }) {
+  const attrsMatch = pathname.match(/^\/entities\/([^/]+)\/attrs$/);
+  const idMatch = pathname.match(/^\/entities\/([^/]+)$/);
+
+  if (pathname === '/entities' && method === 'GET') return demoStore.query(query || {});
+  if (pathname === '/entities' && method === 'POST') {
+    demoStore.create(body);
+    return null;
+  }
+  if (attrsMatch && method === 'PATCH') {
+    demoStore.patchAttrs(decodeURIComponent(attrsMatch[1]), body);
+    return null;
+  }
+  if (idMatch && method === 'GET') return demoStore.get(decodeURIComponent(idMatch[1]));
+  if (idMatch && method === 'DELETE') {
+    demoStore.remove(decodeURIComponent(idMatch[1]));
+    return null;
+  }
+
+  const err = new Error(`デモモード: 未対応の操作です (${method} ${pathname})`);
+  err.status = 500;
+  throw err;
 }
 
 // NGSI-LD の simplified 表現をそのまま GeoJSON に変換する
@@ -126,7 +160,12 @@ function handleError(res) {
 }
 
 app.get('/api/config', (_req, res) => {
-  res.json({ geoloniaApiKey: GEOLONIA_API_KEY, municipality: MUNICIPALITY, operatorRoles: OPERATOR_ROLES });
+  res.json({
+    geoloniaApiKey: GEOLONIA_API_KEY,
+    municipality: MUNICIPALITY,
+    operatorRoles: OPERATOR_ROLES,
+    demoMode: DEMO_MODE,
+  });
 });
 
 function invalidOperator(value) {
