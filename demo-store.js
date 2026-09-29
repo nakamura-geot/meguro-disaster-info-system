@@ -67,6 +67,7 @@ function centroid(geometry) {
 }
 
 // 座標を持たないオープンデータ用に、目黒区内に収まる決定的な仮座標を作る
+// （下の geocode() がネットワーク越しに実座標を取れた場合は、そちらを優先して使う）
 const MEGURO_BBOX = { minLon: 139.6616, maxLon: 139.7177, minLat: 35.6006, maxLat: 35.6642 };
 function seededPoint(seed) {
   let h1 = 0;
@@ -78,6 +79,42 @@ function seededPoint(seed) {
   const lon = MEGURO_BBOX.minLon + ((h1 % 10000) / 10000) * (MEGURO_BBOX.maxLon - MEGURO_BBOX.minLon);
   const lat = MEGURO_BBOX.minLat + ((h2 % 10000) / 10000) * (MEGURO_BBOX.maxLat - MEGURO_BBOX.minLat);
   return { type: 'Point', coordinates: [Number(lon.toFixed(6)), Number(lat.toFixed(6))] };
+}
+
+// 国土地理院のジオコーディングAPIで住所から座標を引く。
+// デモモードはネットワークが無い環境でも動く必要があるため、失敗・タイムアウト時は
+// null を返し、呼び出し側で seededPoint() の仮座標にフォールバックする。
+const GSI_GEOCODER = 'https://msearch.gsi.go.jp/address-search/AddressSearch';
+async function geocode(address, timeoutMs = 3000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${GSI_GEOCODER}?q=${encodeURIComponent(address)}`, { signal: controller.signal });
+    if (!res.ok) return null;
+    const results = await res.json();
+    if (!results.length) return null;
+    const [longitude, latitude] = results[0].geometry.coordinates;
+    return { type: 'Point', coordinates: [longitude, latitude] };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// 何件も並行でジオコーディングするが、同時実行数は絞って相手サーバーに配慮する
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  async function worker() {
+    while (cursor < items.length) {
+      const i = cursor;
+      cursor += 1;
+      results[i] = await fn(items[i], i);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
 }
 
 function slug(prefix, index) {
@@ -112,7 +149,7 @@ const LIFELINE_DEMO_SCENARIO = {
   三田一丁目: { electricity: 'unavailable', water: 'partial' },
 };
 
-function createDemoStore() {
+async function createDemoStore() {
   const entities = new Map();
   const now = new Date().toISOString();
   const put = (entity) => entities.set(entity.id, entity);
@@ -168,15 +205,18 @@ function createDemoStore() {
     shelterIndex += 1;
   });
 
-  // --- 備蓄倉庫（実データの倉庫一覧・在庫按分ロジックを使用。座標のみ仮） ---
+  // --- 備蓄倉庫（実データの倉庫一覧・在庫按分ロジックを使用） ---
+  // 住所からジオコーディングして実際の位置に近づける。取得できなかった分だけ仮座標にする。
   const stockpile = readData('meguro-stockpile.json');
-  stockpile.warehouses.forEach((warehouse, index) => {
+  await mapWithConcurrency(stockpile.warehouses, 5, async (warehouse, index) => {
+    const fullAddress = `東京都目黒区${warehouse.address}`;
+    const location = (await geocode(fullAddress)) || seededPoint(`warehouse-${warehouse.name}-${warehouse.address}`);
     put({
       id: slug('StockpileWarehouse', index),
       type: 'StockpileWarehouse',
       name: warehouse.name,
       district: warehouse.district,
-      address: `目黒区${warehouse.address}`,
+      address: fullAddress,
       area: warehouse.area,
       builtYear: warehouse.builtYear,
       remarks: warehouse.remarks,
@@ -185,41 +225,45 @@ function createDemoStore() {
       inventory: buildInventory(stockpile.inventoryBaseline, warehouse.area),
       inventoryNote: stockpile.inventoryBaseline.note,
       source: stockpile.source,
-      coordinateSource: DEMO_SOURCE_NOTE,
-      location: seededPoint(`warehouse-${warehouse.name}-${warehouse.address}`),
+      coordinateSource: 'デモ用サンプルデータ（住所からの推定座標。取得できない場合は仮の座標）',
+      location,
     });
   });
 
   // --- 一時滞在施設 ---
   const tempStay = readData('meguro-temporary-stay.json');
-  tempStay.facilities.forEach((facility, index) => {
+  await mapWithConcurrency(tempStay.facilities, 5, async (facility, index) => {
+    const fullAddress = `東京都目黒区${facility.address}`;
+    const location = (await geocode(fullAddress)) || seededPoint(`stay-${facility.name}-${facility.address}`);
     put({
       id: slug('TemporaryStayFacility', index),
       type: 'TemporaryStayFacility',
       name: facility.name,
-      address: `目黒区${facility.address}`,
+      address: fullAddress,
       operator: facility.operator,
       municipality: '目黒区',
       status: 'closed',
       source: tempStay.source,
       disclosureNote: tempStay.note,
-      coordinateSource: DEMO_SOURCE_NOTE,
-      location: seededPoint(`stay-${facility.name}-${facility.address}`),
+      coordinateSource: 'デモ用サンプルデータ（住所からの推定座標。取得できない場合は仮の座標）',
+      location,
     });
   });
 
   // --- 防災行政無線（屋外拡声機） ---
   const radioSpeakers = readData('meguro-radio-speakers.json');
-  radioSpeakers.speakers.forEach((speaker, index) => {
+  await mapWithConcurrency(radioSpeakers.speakers, 8, async (speaker, index) => {
+    const fullAddress = `東京都目黒区${speaker.address}`;
+    const location = (await geocode(fullAddress)) || seededPoint(`speaker-${speaker.no}-${speaker.address}`);
     put({
       id: slug('RadioSpeaker', index),
       type: 'RadioSpeaker',
       name: speaker.name,
-      address: `目黒区${speaker.address}`,
+      address: fullAddress,
       audibleRadius: radioSpeakers.audibleRadius,
       source: radioSpeakers.source,
-      coordinateSource: DEMO_SOURCE_NOTE,
-      location: seededPoint(`speaker-${speaker.no}-${speaker.address}`),
+      coordinateSource: 'デモ用サンプルデータ（住所からの推定座標。取得できない場合は仮の座標）',
+      location,
     });
   });
 

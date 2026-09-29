@@ -13,7 +13,7 @@ const GEONIC_SERVICE = process.env.GEONIC_SERVICE;
 
 // GeonicDB の接続情報が無ければ、メモリ上のサンプルデータで動く「デモモード」にする
 const DEMO_MODE = !GEONIC_API_KEY || !GEONIC_SERVICE;
-const demoStore = DEMO_MODE ? createDemoStore() : null;
+let demoStore = null;
 
 // localhost や GitHub Pages などではデモキー "YOUR-API-KEY" がそのまま使える。
 // 独自ドメインで公開する場合のみ app.geolonia.com でキーを発行して .env に設定する。
@@ -42,6 +42,16 @@ if (DEMO_MODE) {
   console.warn(
     '[info] GEONIC_API_KEY / GEONIC_SERVICE が .env に設定されていないため、デモモード（メモリ上のサンプルデータ）で起動します。',
   );
+}
+
+// デモモードの座標付けは住所からのジオコーディングを試みるため、起動が少し遅れることがある
+async function bootstrap() {
+  if (DEMO_MODE) {
+    demoStore = await createDemoStore();
+  }
+  app.listen(PORT, () => {
+    console.log(`目黒区 災害情報共有システム: http://localhost:${PORT}`);
+  });
 }
 
 app.use(express.json({ limit: '1mb' }));
@@ -1389,6 +1399,4 @@ app.get('/api/summary.csv', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`目黒区 災害情報共有システム: http://localhost:${PORT}`);
-});
+bootstrap();
