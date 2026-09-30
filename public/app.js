@@ -111,6 +111,7 @@ async function main() {
 
   state.supplyItems = supplyItems.items;
   state.operatorRoles = config.operatorRoles;
+  document.getElementById('demo-badge').hidden = !config.demoMode;
   setupWhiteboard(noticeCategories.categories);
   setupBroadcast(broadcastChannels.channels);
   await loadGeoloniaScript(config.geoloniaApiKey);
@@ -128,10 +129,15 @@ async function main() {
 
   // 地図スタイル側の不整合（存在しない source-layer の参照など）があると load が発火しないことがある。
   // スタイルが使える状態になったら起動できるよう、styledata からも起動して二重実行を防ぐ。
+  // Geolonia の読み込み中オーバーレイは load で消える仕様だが、load が来ないと地図を覆ったまま操作できなくなる
+  const hideMapLoader = () => document.querySelectorAll('.loading-geolonia-map').forEach((el) => el.remove());
+  state.map.once('idle', hideMapLoader);
+
   let started = false;
   const start = () => {
     if (started || !state.map.getStyle()) return;
     started = true;
+    hideMapLoader();
 
     initLayers().catch((err) => {
       console.error('地図の初期化に失敗しました', err);

@@ -121,6 +121,16 @@ body.mode-logistics #map-wrap {
   white-space: nowrap;
 }
 
+#demo-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #f59e0b;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
 #mode-switch {
   display: flex;
   gap: 4px;
@@ -1299,4 +1309,9 @@ body.mode-field .lifeline-readonly-note {
   margin: 6px 0 0;
   font-size: 11px;
   color: var(--accent);
+}
+
+/* Geolonia の読み込み中オーバーレイ。load が発火しない地図スタイルでは消えず、地図の操作を妨げるため常に隠す */
+.loading-geolonia-map {
+  display: none !important;
 }
